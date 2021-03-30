@@ -39,4 +39,9 @@ public class MyPagerAdapter extends FragmentStatePagerAdapter {
         FragmentTab fragmentTab = fragments.get(position);
         return fragmentTab.getTabTitle();
     }
+
+    public void refreshAll(){
+        for (FragmentTab fragmentTab : fragments)
+            fragmentTab.refresh();
+    }
 }

@@ -25,4 +25,9 @@ public class HistoryTabFragment extends FragmentTab {
     public String getTabTitle() {
         return TAB_TITLE;
     }
+
+    @Override
+    public void refresh() {
+
+    }
 }

@@ -11,61 +11,77 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.jaivra.whatsreminder.R;
-import com.jaivra.whatsreminder.gui.adapter.SingleReminderAdapter;
-import com.jaivra.whatsreminder.gui.dialog.ReminderDialog;
+import com.jaivra.whatsreminder.database.MyDbHelper;
+import com.jaivra.whatsreminder.gui.adapter.ReminderAdapter;
+import com.jaivra.whatsreminder.gui.dialog.ReminderSettingsDialog;
+import com.jaivra.whatsreminder.gui.listener.MyChangeListener;
 import com.jaivra.whatsreminder.gui.listener.MyItemView;
 import com.jaivra.whatsreminder.inc.gui.FragmentTab;
 import com.jaivra.whatsreminder.inc.gui.ViewItemModel;
 import com.jaivra.whatsreminder.model.GroupMessageDate;
 import com.jaivra.whatsreminder.model.ProgrammedMessage;
-import com.jaivra.whatsreminder.test.Generator;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public class SingleReminderTabFragment extends FragmentTab implements MyItemView.OnClickListener {
+public class SingleReminderTabFragment extends FragmentTab implements ReminderSettingsDialog.OnClickListener {
     private static String TAB_TITLE = "Single";
 
+    protected MyChangeListener changeListener;
     private RecyclerView recyclerView;
-    private SingleReminderAdapter adapter;
+    private ReminderAdapter adapter;
     private RecyclerView.LayoutManager layoutManager;
 
     List<ViewItemModel> items;
+
+    protected MyDbHelper dbHelper;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View layout = inflater.inflate(R.layout.fragment_remider, container, false);
 
-        this.recyclerView = layout.findViewById(R.id.recycler_view);
+        this.dbHelper = new MyDbHelper(getContext());
         this.layoutManager = new LinearLayoutManager(getContext());
         this.items = new ArrayList<>();
+        this.changeListener = (MyChangeListener) getActivity();
+
         formatItemsForView(getItems());
 
-        this.adapter = new SingleReminderAdapter(items);
-        this.adapter.setOnImageClickListener(this);
+        this.recyclerView = layout.findViewById(R.id.recycler_view);
+        this.adapter = new ReminderAdapter(items, getReminderView());
+
+        MyItemView.OnClickListener<ProgrammedMessage> imageListener = programmedMessage -> {
+            programmedMessage.setActive(!programmedMessage.isActive());
+            adapter.notifyDataSetChanged();
+        };
+
+        this.adapter.setOnImageClickListener(imageListener);
+
+        MyItemView.OnClickListener<ProgrammedMessage> settingsClickListener = programmedMessage -> {
+            new ReminderSettingsDialog(programmedMessage, this).show(getFragmentManager(), "settingsDialog");
+        };
+        this.adapter.setOnSettingsClickListener(settingsClickListener);
 
         recyclerView.setLayoutManager(layoutManager);
 
         recyclerView.setAdapter(adapter);
 
-        layout.findViewById(R.id.fab).setOnClickListener(view -> {
-            ReminderDialog dialog = ReminderDialog.newInstance(R.id.contact_name);
-            dialog.show(getFragmentManager(), "dialog)");
-        });
+//        layout.findViewById(R.id.fab).setOnClickListener(view -> {
+//            ContactDialog dialog = ContactDialog.newInstance(R.id.contact_name);
+//            dialog.show(getFragmentManager(), "dialog)");
+//        });
         return layout;
     }
 
-    private List<ProgrammedMessage> getItems() {
-        Generator generator = new Generator();
+    protected int getReminderView() {
+        return R.layout.single_reminder_item;
+    }
 
-        List<ProgrammedMessage> items = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            items.add(generator.generateProgrammedMessage());
-        }
-        return items;
+    protected List<ProgrammedMessage> getItems() {
+        return dbHelper.getAllSingleReminders();
     }
 
     private void formatItemsForView(List<ProgrammedMessage> programmedMessages) {
@@ -74,8 +90,8 @@ public class SingleReminderTabFragment extends FragmentTab implements MyItemView
                 (int) (programmedMessage1.getDate().getTime() - programmedMessage2.getDate().getTime())
         );
         for (ProgrammedMessage programmedMessage : programmedMessages) {
-            
-            if (lastDate == null || programmedMessage.getDate().getTime() / (10*5) != lastDate.getTime() / (10*5)) {
+
+            if (lastDate == null || programmedMessage.getDate().getTime() / (10 * 5) != lastDate.getTime() / (10 * 5)) {
                 lastDate = programmedMessage.getDate();
                 GroupMessageDate groupMessageDate = new GroupMessageDate(lastDate);
                 items.add(groupMessageDate);
@@ -90,9 +106,42 @@ public class SingleReminderTabFragment extends FragmentTab implements MyItemView
     }
 
     @Override
-    public void onClick(ViewItemModel viewItemModel) {
-        ProgrammedMessage programmedMessage = (ProgrammedMessage) viewItemModel;
-        programmedMessage.setActive(!programmedMessage.isActive());
+    public void refresh() {
+        items.clear();
+        formatItemsForView(getItems());
         adapter.notifyDataSetChanged();
+    }
+
+
+    @Override
+    public void onDisableClick(ProgrammedMessage programmedMessage) {
+        programmedMessage.setActive(false);
+        dbHelper.updateReminder(programmedMessage);
+        changeListener.onChange();
+    }
+
+    @Override
+    public void onEnableClick(ProgrammedMessage programmedMessage) {
+        programmedMessage.setActive(true);
+        dbHelper.updateReminder(programmedMessage);
+        changeListener.onChange();
+    }
+
+    @Override
+    public void onDeleteClick(ProgrammedMessage programmedMessage) {
+        programmedMessage.setType(ProgrammedMessage.TYPE_REMOVED);
+        dbHelper.updateReminder(programmedMessage);
+        changeListener.onChange();
+    }
+
+    public void onPeriodicClick(ProgrammedMessage programmedMessage) {
+        programmedMessage.setType(ProgrammedMessage.TYPE_PERIODIC);
+        dbHelper.updateReminder(programmedMessage);
+        changeListener.onChange();
+    }
+
+    @Override
+    public void onSingleClick(ProgrammedMessage programmedMessage) {
+
     }
 }

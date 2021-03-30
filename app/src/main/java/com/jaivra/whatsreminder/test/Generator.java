@@ -28,9 +28,9 @@ public class Generator {
             date = new Date(1596458042481L);
         ProgrammedMessage result = new ProgrammedMessage.Builder()
                 .body("Message " + messageCount)
-                .periodic(periodic)
+                .type(1)
                 .date(date)
-                .toContact("Contact " + contactCount)
+                .toContact(new ContactMessage.Builder().name("prova").number("2333232").build())
                 .active(active)
                 .build();
         return result;
