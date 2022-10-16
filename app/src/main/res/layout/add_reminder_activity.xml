@@ -134,6 +134,7 @@
                                     android:layout_gravity="center_horizontal"
                                     android:padding="4dp"
                                     app:checked="false"
+                                    android:id="@+id/checkbox_periodic"
                                     app:circle_color="@color/main_green"
                                     app:stroke_color="@color/colorPrimary"
                                     app:stroke_width="4dp" />
