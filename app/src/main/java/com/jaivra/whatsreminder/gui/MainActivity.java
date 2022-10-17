@@ -76,14 +76,6 @@ public class MainActivity extends AppCompatActivity implements MyChangeListener,
         myPagerAdapter.addFragment(new HistoryTabFragment());
     }
 
-    private void toUse() {
-        String url = "https://api.whatsapp.com/send?phone=" + "+393477063199" + "&text=" + "voglio inviare questo messaggio";
-        Intent i = new Intent(Intent.ACTION_VIEW);
-        i.setData(Uri.parse(url));
-        startActivity(i);
-    }
-
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
