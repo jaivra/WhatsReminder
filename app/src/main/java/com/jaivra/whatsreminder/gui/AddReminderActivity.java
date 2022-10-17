@@ -1,5 +1,9 @@
 package com.jaivra.whatsreminder.gui;
 
+import static android.Manifest.permission.READ_CONTACTS;
+import static android.content.pm.PackageManager.PERMISSION_DENIED;
+
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
@@ -14,6 +18,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewPropertyAnimator;
 import android.widget.CheckBox;
@@ -24,10 +29,15 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
+import com.github.lguipeng.library.animcheckbox.AnimCheckBox;
 import com.jaivra.whatsreminder.R;
 import com.jaivra.whatsreminder.database.MyDbHelper;
 import com.jaivra.whatsreminder.gui.dialog.ContactDialog;
@@ -49,7 +59,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-public class AddReminderActivity extends AppCompatActivity implements MyItemView.OnClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, View.OnClickListener {
+public class AddReminderActivity extends AppCompatActivity implements MyItemView.OnClickListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, View.OnClickListener{
     List<ContactMessage> contactMessages;
 
     View chooseContact;
@@ -58,7 +68,7 @@ public class AddReminderActivity extends AppCompatActivity implements MyItemView
     TextView chosenDate;
 
     TextView chosenTime;
-    CheckBox periodicCheckBox;
+    AnimCheckBox periodicCheckBox;
 
     ContactDialog contactDialog;
 
@@ -76,7 +86,7 @@ public class AddReminderActivity extends AppCompatActivity implements MyItemView
 
     public static final String ADD_REMINDER_RESULT = "reminder_result";
     public static final int ADD_REMINDER = 1;
-
+    private ActivityResultLauncher activityResultLauncher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -117,11 +127,12 @@ public class AddReminderActivity extends AppCompatActivity implements MyItemView
         dbHelper = new MyDbHelper(this);
 
         startAnimation();
+
     }
 
-    private void startAnimation(){
+    private void startAnimation() {
 
-        ColorStateList oldColors =  chosenTime.getTextColors(); //save original colors
+        ColorStateList oldColors = chosenTime.getTextColors(); //save original colors
         chosenTime.setTextColor(getResources().getColor(R.color.orangeWarning));
         ViewPropertyAnimator animator = chosenTime.animate().scaleX(1.5f).scaleY(1.5f).setDuration(300);
         animator.setListener(new AnimatorListenerAdapter() {
@@ -201,6 +212,7 @@ public class AddReminderActivity extends AppCompatActivity implements MyItemView
 
     }
 
+
     private class LoadContactTask extends AsyncTask<Void, List<ContactMessage>, List<ContactMessage>> {
 
         Context context;
@@ -218,6 +230,7 @@ public class AddReminderActivity extends AppCompatActivity implements MyItemView
         private List<ContactMessage> getContacts() {
             ContentResolver contentResolver = Objects.requireNonNull(context).getContentResolver();
             List<ContactMessage> contactsInfoList = new LinkedList<>();
+
             Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC");
             while (cursor.moveToNext()) {
                 int hasPhoneNumber = Integer.parseInt(cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)));
@@ -258,14 +271,14 @@ public class AddReminderActivity extends AppCompatActivity implements MyItemView
     }
 
 
-    private static class MyAnimatorListener{
+    private static class MyAnimatorListener {
         View view;
 
         public MyAnimatorListener(View view) {
             this.view = view;
         }
 
-        
+
     }
 
 }

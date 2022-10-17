@@ -1,12 +1,18 @@
 package com.jaivra.whatsreminder.gui;
 
+import static android.Manifest.permission.READ_CONTACTS;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.viewpager.widget.ViewPager;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ImageView;
@@ -19,12 +25,9 @@ import com.jaivra.whatsreminder.gui.fragment.PeriodicReminderTabFragment;
 import com.jaivra.whatsreminder.gui.fragment.SingleReminderTabFragment;
 import com.jaivra.whatsreminder.gui.listener.MyChangeListener;
 import com.jaivra.whatsreminder.inc.gui.MyPagerAdapter;
-import com.jaivra.whatsreminder.model.ContactMessage;
 import com.jaivra.whatsreminder.model.ProgrammedMessage;
 
-import java.util.Date;
-
-public class MainActivity extends AppCompatActivity implements MyChangeListener {
+public class MainActivity extends AppCompatActivity implements MyChangeListener, ActivityResultCallback<Boolean>{
 
     private MyPagerAdapter myPagerAdapter;
     private ViewPager viewPager;
@@ -50,10 +53,21 @@ public class MainActivity extends AppCompatActivity implements MyChangeListener 
         viewPager.setAdapter(myPagerAdapter);
         tabLayout.setupWithViewPager(viewPager);
 
+        ActivityResultLauncher<String> activityResultLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), this);
+
         addButton.setOnClickListener(view -> {
-            Intent intent = new Intent(this, AddReminderActivity.class);
-            startActivityForResult(intent, 1);
+            if (ContextCompat.checkSelfPermission(getApplicationContext(), READ_CONTACTS) == PERMISSION_GRANTED) {
+
+               launchAddReminderActivity();
+            } else {
+                activityResultLauncher.launch(READ_CONTACTS);
+            }
         });
+    }
+
+    private void launchAddReminderActivity() {
+        Intent intent = new Intent(this, AddReminderActivity.class);
+        startActivityForResult(intent, 1);
     }
 
     private void initTabs() {
@@ -86,5 +100,11 @@ public class MainActivity extends AppCompatActivity implements MyChangeListener 
     @Override
     public void onChange() {
         myPagerAdapter.refreshAll();
+    }
+
+    @Override
+    public void onActivityResult(Boolean result) {
+        if (result)
+            launchAddReminderActivity();
     }
 }
