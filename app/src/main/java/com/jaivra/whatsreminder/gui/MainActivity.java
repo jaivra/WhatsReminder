@@ -47,9 +47,7 @@ public class MainActivity extends AppCompatActivity implements MyChangeListener,
         initTabs();
 
         MyDbHelper dbHelper = new MyDbHelper(this);
-        for (ProgrammedMessage programmedMessage : dbHelper.getAllSingleReminders())
-            System.out.println("PROGRAMMED MESSAGE " + programmedMessage.getBody());
-
+        
         viewPager.setAdapter(myPagerAdapter);
         tabLayout.setupWithViewPager(viewPager);
 
@@ -81,7 +79,6 @@ public class MainActivity extends AppCompatActivity implements MyChangeListener,
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
             int result = data.getIntExtra(AddReminderActivity.ADD_REMINDER_RESULT, 0);
-            System.out.println("RESULT : " + result);
 
             if (result == AddReminderActivity.ADD_REMINDER)
                 myPagerAdapter.refreshAll();

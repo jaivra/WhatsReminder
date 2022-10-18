@@ -54,7 +54,6 @@ public class MyDbHelper extends SQLiteOpenHelper {
     }
 
     public void onCreate(SQLiteDatabase db) {
-        System.out.println("************ " + SQL_CREATE_ENTRIES);
         db.execSQL(SQL_CREATE_ENTRIES);
     }
 
@@ -89,7 +88,6 @@ public class MyDbHelper extends SQLiteOpenHelper {
 
         SQLiteDatabase db = getWritableDatabase();
         long id = db.insert(TABLE_NAME, null, values);
-        System.out.println("INSERTION : " + id);
         programmedMessage.setId(id);
     }
 

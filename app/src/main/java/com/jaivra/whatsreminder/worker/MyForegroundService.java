@@ -36,7 +36,6 @@ public class MyForegroundService extends Service {
                 .build();
         startForeground(1, notification);
 
-        System.out.println("FOREGROUND!!!!!");
         //do heavy work on a background thread
         //stopSelf();
         return START_NOT_STICKY;
